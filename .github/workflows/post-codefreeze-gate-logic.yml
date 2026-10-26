@@ -27,7 +27,7 @@ jobs:
       - name: Checkout shared resources
         uses: actions/checkout@v4
         with:
-          repository: red-hat-data-services/devops-shared-resources
+          repository: rhoai-rhtap/devops-shared-resources
           ref: main
           path: shared-resources
 
@@ -59,11 +59,27 @@ jobs:
           echo "skip=false" >> "$GITHUB_OUTPUT"
           echo "::notice::Derived Jira version: $JIRA_VERSION"
 
+      - name: Fetch current PR description
+        if: steps.branch-info.outputs.skip != 'true'
+        id: current-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          body=$(gh api "repos/${GH_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.body // ""')
+          delimiter="PR_BODY_$(openssl rand -hex 16)"
+          {
+            echo "body<<${delimiter}"
+            printf '%s\n' "$body"
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Extract Jira issues from PR description
         if: steps.branch-info.outputs.skip != 'true'
         id: extract-jira
         env:
-          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BODY: ${{ steps.current-pr.outputs.body }}
         run: |
           KEYS=$(echo "$PR_BODY" | grep -oE '(RHOAIENG|RHAIENG|AIPCC)-[0-9]+' | sort -u || true)
           if [ -z "$KEYS" ]; then
@@ -81,7 +97,7 @@ jobs:
         id: validate
         uses: ./shared-resources/.github/actions/validate-jira-issues
         with:
-          pr_body: ${{ github.event.pull_request.body }}
+          pr_body: ${{ steps.current-pr.outputs.body }}
           jira_version: ${{ steps.branch-info.outputs.jira_version }}
           jira_base_url: ${{ inputs.jira_base_url || 'https://redhat.atlassian.net' }}
           jira_user_email: ${{ secrets.JIRA_USER_EMAIL }}
