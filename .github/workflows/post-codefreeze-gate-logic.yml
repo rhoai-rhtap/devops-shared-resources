@@ -134,7 +134,7 @@ jobs:
             ${{ steps.validate.outputs.details }}
 
             ---
-            <sub>After resolving issues, push a commit, re-edit the PR description, or add the <code>run-gatekeeper</code> label to re-trigger this check.</sub>
+            <sub>After resolving issues, use GitHub Actions’ <strong>Re-run jobs</strong> action on this workflow run to revalidate the current PR description.</sub>
 
       - name: Fail if validation failed
         if: steps.branch-info.outputs.skip != 'true' && steps.validate.outputs.pass != 'true'
