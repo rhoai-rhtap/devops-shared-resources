@@ -134,7 +134,7 @@ jobs:
             ${{ steps.validate.outputs.details }}
 
             ---
-            <sub>After resolving issues, rerun the <code>post-codefreeze-gate / post-codefreeze-gatekeeper</code> job from this Actions run to revalidate the current PR description.</sub>
+            <sub>After resolving issues, rerun the <strong>Post-Codefreeze Gatekeeper</strong> workflow in GitHub Actions to revalidate the current PR description.</sub>
 
       - name: Fail if validation failed
         if: steps.branch-info.outputs.skip != 'true' && steps.validate.outputs.pass != 'true'
